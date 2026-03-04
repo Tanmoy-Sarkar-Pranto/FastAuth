@@ -11,6 +11,8 @@ build/
 .env
 .env.*
 !.env.example
+*.md
+!README.md
 
 # IDE
 .idea/
