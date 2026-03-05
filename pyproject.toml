@@ -11,4 +11,6 @@ dependencies = [
     "alembic==1.15.1",
     "argon2-cffi==23.1.0",
     "python-multipart>=0.0.22",
+    "PyJWT==2.10.1",
+    "cryptography==46.0.5",
 ]

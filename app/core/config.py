@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "postgresql://fastauth:fastauth@db:5432/fastauth"
 
+    # RSA keypair paths
+    private_key_path: str = "keys/private.pem"
+    public_key_path: str = "keys/public.pem"
+
 
 @lru_cache
 def get_settings() -> Settings:

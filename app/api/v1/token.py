@@ -1,9 +1,8 @@
-import secrets
-
 from fastapi import APIRouter, Depends, Form, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.config import Settings, get_settings
+from app.core.jwt import create_access_token
 from app.db.session import get_db
 from app.schemas.token import TokenResponse
 from app.services.user import authenticate_user
@@ -36,8 +35,7 @@ def token(
     if not user:
         raise INVALID_GRANT
 
-    # Placeholder token — replaced with a real RS256 JWT later
-    access_token = secrets.token_urlsafe(32)
+    access_token = create_access_token(subject=str(user.id))
 
     return TokenResponse(
         access_token=access_token,
