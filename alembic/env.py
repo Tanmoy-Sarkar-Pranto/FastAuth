@@ -6,6 +6,7 @@ from alembic import context
 from app.core.config import get_settings
 from app.db.base import Base
 import app.models.user
+import app.models.refresh_token
 
 config = context.config
 
