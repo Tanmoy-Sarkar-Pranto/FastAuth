@@ -24,3 +24,21 @@ def create_access_token(subject: str, scopes: list[str] | None = None) -> str:
         private_key = f.read()
 
     return jwt.encode(payload, private_key, algorithm="RS256")
+
+
+def decode_access_token(token: str) -> dict | None:
+    """Decode and verify a JWT. Returns the payload dict, or None if invalid/expired."""
+    settings = get_settings()
+
+    with open(settings.public_key_path, "rb") as f:
+        public_key = f.read()
+
+    try:
+        return jwt.decode(
+            token,
+            public_key,
+            algorithms=["RS256"],
+            options={"require": ["exp", "sub", "iss"]},
+        )
+    except jwt.PyJWTError:
+        return None
