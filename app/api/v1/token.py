@@ -9,6 +9,7 @@ from app.schemas.token import TokenResponse
 from app.services.user import authenticate_user
 from app.services.refresh_token import create_refresh_token, rotate_refresh_token
 from app.services.client import authenticate_client
+from app.services.scope import resolve_scopes
 
 router = APIRouter(tags=["auth"])
 
@@ -41,6 +42,7 @@ def token(
     refresh_token: Optional[str] = Form(default=None),
     client_id: Optional[str] = Form(default=None),
     client_secret: Optional[str] = Form(default=None),
+    scope: Optional[str] = Form(default=None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -86,7 +88,15 @@ def token(
         if not client:
             raise INVALID_CLIENT
 
-        scopes = client.allowed_scopes.split() if client.allowed_scopes else []
+        requested = scope.split() if scope else []
+        allowed = client.allowed_scopes.split() if client.allowed_scopes else []
+        try:
+            scopes = resolve_scopes(db, requested=requested, allowed=allowed)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": "invalid_scope", "error_description": str(e)},
+            )
         access_token = create_access_token(subject=client.client_id, scopes=scopes)
 
         return TokenResponse(

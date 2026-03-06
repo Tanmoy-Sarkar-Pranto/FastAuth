@@ -8,6 +8,7 @@ from app.db.base import Base
 import app.models.user
 import app.models.refresh_token
 import app.models.client
+import app.models.scope
 
 config = context.config
 
