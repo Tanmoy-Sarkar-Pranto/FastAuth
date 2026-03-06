@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     private_key_path: str = "keys/private.pem"
     public_key_path: str = "keys/public.pem"
 
+    # Admin API protection
+    admin_api_key: str = "change-me-in-production"
+
 
 @lru_cache
 def get_settings() -> Settings:
