@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Admin API protection
     admin_api_key: str = "change-me-in-production"
 
+    # Registration mode
+    allow_public_registration: bool = True
+
 
 @lru_cache
 def get_settings() -> Settings:

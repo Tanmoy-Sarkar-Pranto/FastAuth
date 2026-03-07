@@ -13,4 +13,5 @@ dependencies = [
     "python-multipart>=0.0.22",
     "PyJWT==2.10.1",
     "cryptography==46.0.5",
+    "email-validator==2.2.0",
 ]
