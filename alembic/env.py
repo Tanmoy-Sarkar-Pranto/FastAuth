@@ -9,6 +9,7 @@ import app.models.user
 import app.models.refresh_token
 import app.models.client
 import app.models.scope
+import app.models.authorization_code
 
 config = context.config
 
