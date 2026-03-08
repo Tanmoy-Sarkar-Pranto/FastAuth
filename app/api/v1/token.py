@@ -10,12 +10,13 @@ from app.services.user import authenticate_user
 from app.services.refresh_token import create_refresh_token, rotate_refresh_token
 from app.services.client import authenticate_client
 from app.services.scope import resolve_scopes
+from app.services.authorization_code import consume_authorization_code
 
 router = APIRouter(tags=["auth"])
 
 UNSUPPORTED_GRANT = HTTPException(
     status_code=400,
-    detail={"error": "unsupported_grant_type", "error_description": "Supported: password, refresh_token, client_credentials"},
+    detail={"error": "unsupported_grant_type", "error_description": "Supported: password, refresh_token, client_credentials, authorization_code"},
 )
 
 INVALID_CLIENT = HTTPException(
@@ -43,6 +44,9 @@ def token(
     client_id: Optional[str] = Form(default=None),
     client_secret: Optional[str] = Form(default=None),
     scope: Optional[str] = Form(default=None),
+    code: Optional[str] = Form(default=None),
+    code_verifier: Optional[str] = Form(default=None),
+    redirect_uri: Optional[str] = Form(default=None),
     db: Session = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -102,6 +106,37 @@ def token(
         return TokenResponse(
             access_token=access_token,
             expires_in=settings.access_token_expire_minutes * 60,
+        )
+
+    elif grant_type == "authorization_code":
+        if not code or not code_verifier or not redirect_uri or not client_id:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": "invalid_request", "error_description": "code, code_verifier, redirect_uri, and client_id are required"},
+            )
+
+        try:
+            db_code = consume_authorization_code(
+                db=db,
+                raw_code=code,
+                code_verifier=code_verifier,
+                redirect_uri=redirect_uri,
+                client_id=client_id,
+            )
+        except ValueError as e:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": "invalid_grant", "error_description": str(e)},
+            )
+
+        scopes = db_code.scopes.split() if db_code.scopes else []
+        access_token = create_access_token(subject=str(db_code.user_id), scopes=scopes)
+        new_refresh_token = create_refresh_token(db, user_id=str(db_code.user_id))
+
+        return TokenResponse(
+            access_token=access_token,
+            expires_in=settings.access_token_expire_minutes * 60,
+            refresh_token=new_refresh_token,
         )
 
     else:
