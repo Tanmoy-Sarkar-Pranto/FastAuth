@@ -45,9 +45,22 @@ def create_authorization_code(
     return raw_code
 
 
-def consume_authorization_code(db: Session, raw_code: str) -> AuthorizationCode:
+def verify_pkce(code_verifier: str, stored_challenge: str) -> bool:
     """
-    Look up, validate, and mark a code as used.
+    Verify that SHA256(code_verifier) matches the stored code_challenge.
+    Both are BASE64URL encoded — we normalize padding before comparing.
+    """
+    digest = hashlib.sha256(code_verifier.encode()).digest()
+    computed = base64.urlsafe_b64encode(digest).decode().rstrip("=")
+    stored = stored_challenge.rstrip("=")
+    return computed == stored
+
+
+def consume_authorization_code(
+    db: Session, raw_code: str, code_verifier: str, redirect_uri: str, client_id: str
+) -> AuthorizationCode:
+    """
+    Look up, validate, verify PKCE, and mark a code as used.
     Raises ValueError with reason on any failure.
     """
     code_hash = _hash_code(raw_code)
@@ -63,6 +76,15 @@ def consume_authorization_code(db: Session, raw_code: str) -> AuthorizationCode:
 
     if db_code.expires_at < datetime.now(timezone.utc):
         raise ValueError("code_expired")
+
+    if db_code.client_id != client_id:
+        raise ValueError("client_mismatch")
+
+    if db_code.redirect_uri != redirect_uri:
+        raise ValueError("redirect_uri_mismatch")
+
+    if not verify_pkce(code_verifier, db_code.code_challenge):
+        raise ValueError("pkce_verification_failed")
 
     db_code.used = True
     db.commit()
