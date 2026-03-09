@@ -1,3 +1,69 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    background-color: #080c14;
+  }
+
+  body {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    background-color: #080c14;
+    color: #e2e8f0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer utilities {
+  /* Dot-grid background */
+  .dot-grid {
+    background-image: radial-gradient(circle, rgba(45,58,82,0.6) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Subtle noise overlay */
+  .noise::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* Input base */
+  .field {
+    @apply w-full px-3 py-2.5 rounded-md bg-navy-800 border border-navy-500
+           text-slate-200 text-sm font-mono placeholder-navy-400
+           focus:outline-none focus:border-accent focus:shadow-glow-sm
+           transition-all duration-200;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply w-full py-2.5 px-4 rounded-md text-sm font-semibold text-white
+           bg-accent hover:bg-accent-bright
+           transition-all duration-200
+           disabled:opacity-40 disabled:cursor-not-allowed
+           focus:outline-none focus:shadow-glow;
+  }
+
+  /* Card surface */
+  .card {
+    @apply bg-navy-800 border border-navy-500 rounded-xl;
+  }
+
+  /* Monospace data tag */
+  .mono-tag {
+    @apply font-mono text-xs bg-navy-700 border border-navy-500 rounded px-1.5 py-0.5 text-slate-400;
+  }
+}
