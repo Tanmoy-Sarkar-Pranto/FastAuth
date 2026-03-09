@@ -6,6 +6,7 @@ import Layout from './components/Layout'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import UserDashboard from './pages/UserDashboard'
+import AdminLoginPage from './pages/AdminLoginPage'
 
 // Placeholder pages for now
 function PlaceholderPage({ title }) {
@@ -17,9 +18,6 @@ function PlaceholderPage({ title }) {
   )
 }
 
-function AdminLoginPage() {
-  return <PlaceholderPage title="Admin Login" />
-}
 
 function ProtectedLayout() {
   const { isAuthenticated } = useAdmin()

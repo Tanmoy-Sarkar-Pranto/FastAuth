@@ -58,11 +58,11 @@ export default function Layout({ children }) {
   }
 
   return (
-    <div className="flex h-screen bg-navy-900 text-slate-200 overflow-hidden">
+    <div className="flex h-screen overflow-hidden" style={{ background: 'var(--bg-base)', color: 'var(--text-pri)' }}>
       {/* Sidebar */}
-      <aside className="w-52 flex-shrink-0 flex flex-col border-r border-navy-500 bg-navy-900">
+      <aside className="w-52 flex-shrink-0 flex flex-col" style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--border-sub)' }}>
         {/* Logo */}
-        <div className="px-4 py-4 border-b border-navy-500 flex items-center gap-2.5">
+        <div className="px-4 py-4 flex items-center gap-2.5" style={{ borderBottom: '1px solid var(--border-sub)' }}>
           <div className="w-7 h-7 rounded-md bg-accent-dim border border-accent/30 flex items-center justify-center text-accent flex-shrink-0">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -85,9 +85,10 @@ export default function Layout({ children }) {
                 `flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-all duration-150 ${
                   isActive
                     ? 'bg-accent-dim text-accent-bright border border-accent/20 shadow-glow-sm'
-                    : 'text-slate-500 hover:text-slate-200 hover:bg-navy-700'
+                    : 'hover:bg-[var(--bg-elevated)]'
                 }`
               }
+              style={({ isActive }) => isActive ? {} : { color: 'var(--text-muted)' }}
             >
               {({ isActive }) => (
                 <>
@@ -100,10 +101,11 @@ export default function Layout({ children }) {
         </nav>
 
         {/* Footer */}
-        <div className="px-2 py-3 border-t border-navy-500 space-y-0.5">
+        <div className="px-2 py-3 space-y-0.5" style={{ borderTop: '1px solid var(--border-sub)' }}>
           <button
             onClick={toggle}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-slate-500 hover:text-slate-200 hover:bg-navy-700 transition-all"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm hover:bg-[var(--bg-elevated)] transition-all"
+            style={{ color: 'var(--text-muted)' }}
           >
             {dark ? (
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -133,7 +135,7 @@ export default function Layout({ children }) {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-auto bg-navy-900 dot-grid">
+      <main className="flex-1 overflow-auto dot-grid" style={{ background: 'var(--bg-base)' }}>
         <div className="min-h-full p-8">
           {children}
         </div>
