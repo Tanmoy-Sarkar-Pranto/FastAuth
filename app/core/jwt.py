@@ -23,7 +23,7 @@ def create_access_token(subject: str, scopes: list[str] | None = None) -> str:
     with open(settings.private_key_path, "rb") as f:
         private_key = f.read()
 
-    return jwt.encode(payload, private_key, algorithm="RS256")
+    return jwt.encode(payload, private_key, algorithm="RS256", headers={"kid": settings.key_id})
 
 
 def decode_access_token(token: str) -> dict | None:

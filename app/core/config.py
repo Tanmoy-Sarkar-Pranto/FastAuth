@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     private_key_path: str = "keys/private.pem"
     public_key_path: str = "keys/public.pem"
 
+    # Active key ID — embedded in JWT header and JWKS
+    key_id: str = "key-1"
+
     # Admin API protection
     admin_api_key: str = "change-me-in-production"
 

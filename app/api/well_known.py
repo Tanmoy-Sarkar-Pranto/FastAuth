@@ -53,7 +53,7 @@ def jwks():
                 "kty": "RSA",
                 "use": "sig",
                 "alg": "RS256",
-                "kid": "1",  # static for now — proper rotation later
+                "kid": settings.key_id,
                 "n": _int_to_base64url(numbers.n),
                 "e": _int_to_base64url(numbers.e),
             }
