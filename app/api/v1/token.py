@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Form, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -11,6 +11,7 @@ from app.services.refresh_token import create_refresh_token, rotate_refresh_toke
 from app.services.client import authenticate_client
 from app.services.scope import resolve_scopes
 from app.services.authorization_code import consume_authorization_code
+from app.core.rate_limit import rate_limit
 
 router = APIRouter(tags=["auth"])
 
@@ -35,7 +36,7 @@ INVALID_REFRESH_TOKEN = HTTPException(
 )
 
 
-@router.post("/token", response_model=TokenResponse)
+@router.post("/token", response_model=TokenResponse, dependencies=[Depends(rate_limit)])
 def token(
     grant_type: str = Form(...),
     username: Optional[str] = Form(default=None),

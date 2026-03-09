@@ -29,6 +29,13 @@ class Settings(BaseSettings):
     secondary_key_id: str | None = None
     secondary_public_key_path: str | None = None
 
+    # Redis
+    redis_url: str = "redis://redis:6379"
+
+    # Rate limiting
+    rate_limit_requests: int = 10
+    rate_limit_window_seconds: int = 60
+
     # Admin API protection
     admin_api_key: str = "change-me-in-production"
 

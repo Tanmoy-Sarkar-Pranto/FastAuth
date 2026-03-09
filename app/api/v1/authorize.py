@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -9,6 +9,7 @@ from app.models.client import Client
 from app.services.user import authenticate_user
 from app.services.authorization_code import create_authorization_code
 from app.services.scope import resolve_scopes
+from app.core.rate_limit import rate_limit
 
 router = APIRouter(tags=["oauth2"])
 
@@ -21,7 +22,7 @@ def _error_redirect(redirect_uri: str, error: str, description: str, state: Opti
     return RedirectResponse(url=f"{redirect_uri}?{urlencode(params)}", status_code=302)
 
 
-@router.get("/authorize")
+@router.get("/authorize", dependencies=[Depends(rate_limit)])
 def authorize(
     response_type: str = Query(...),
     client_id: str = Query(...),
