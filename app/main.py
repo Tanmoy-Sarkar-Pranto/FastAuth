@@ -1,9 +1,15 @@
+import logging
 from fastapi import FastAPI
 
 from app.api.v1 import health, token, introspect, users, authorize
 from app.api.v1.admin import clients as admin_clients
 from app.api.v1.admin import users as admin_users
 from app.api import well_known
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s",
+)
 
 app = FastAPI(title="FastAuth", version="1.0.0")
 

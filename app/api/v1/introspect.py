@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, Request
 from pydantic import BaseModel
 
 from app.core.jwt import decode_access_token
+from app.core import audit
 
 router = APIRouter(tags=["auth"])
 
@@ -17,12 +18,15 @@ class IntrospectionResponse(BaseModel):
 
 
 @router.post("/introspect", response_model=IntrospectionResponse)
-def introspect(token: str = Form(...)):
+def introspect(request: Request, token: str = Form(...)):
+    ip = request.client.host
     payload = decode_access_token(token)
 
     if payload is None:
+        audit.introspection_called(ip=ip, active=False)
         return IntrospectionResponse(active=False)
 
+    audit.introspection_called(ip=ip, active=True)
     return IntrospectionResponse(
         active=True,
         sub=payload.get("sub"),
