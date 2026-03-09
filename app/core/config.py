@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     rate_limit_requests: int = 10
     rate_limit_window_seconds: int = 60
 
+    # Account lockout
+    max_login_attempts: int = 5
+    lockout_duration_seconds: int = 900  # 15 minutes
+
     # Admin API protection
     admin_api_key: str = "change-me-in-production"
 

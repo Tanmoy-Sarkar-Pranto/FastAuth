@@ -12,6 +12,7 @@ from app.services.client import authenticate_client
 from app.services.scope import resolve_scopes
 from app.services.authorization_code import consume_authorization_code
 from app.core.rate_limit import rate_limit
+from app.services.lockout import is_locked, record_failure, reset_failures, lockout_ttl
 
 router = APIRouter(tags=["auth"])
 
@@ -55,10 +56,22 @@ def token(
         if not username or not password:
             raise INVALID_GRANT
 
+        if is_locked(username):
+            ttl = lockout_ttl(username)
+            raise HTTPException(
+                status_code=423,
+                detail={
+                    "error": "account_locked",
+                    "error_description": f"Account is locked due to too many failed attempts. Try again in {ttl} seconds.",
+                },
+            )
+
         user = authenticate_user(db, email=username, password=password)
         if not user:
+            record_failure(username)
             raise INVALID_GRANT
 
+        reset_failures(username)
         access_token = create_access_token(subject=str(user.id))
         new_refresh_token = create_refresh_token(db, user_id=str(user.id))
 
