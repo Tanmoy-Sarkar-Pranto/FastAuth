@@ -14,6 +14,29 @@ def _int_to_base64url(n: int) -> str:
     return base64.urlsafe_b64encode(n.to_bytes(length, "big")).rstrip(b"=").decode()
 
 
+@router.get("/.well-known/openid-configuration")
+def openid_configuration():
+    settings = get_settings()
+    base = settings.issuer_url.rstrip("/")
+
+    return {
+        "issuer": base,
+        "authorization_endpoint": f"{base}/api/v1/authorize",
+        "token_endpoint": f"{base}/api/v1/token",
+        "introspection_endpoint": f"{base}/api/v1/introspect",
+        "jwks_uri": f"{base}/.well-known/jwks.json",
+        "response_types_supported": ["code"],
+        "grant_types_supported": [
+            "authorization_code",
+            "client_credentials",
+            "password",
+            "refresh_token",
+        ],
+        "token_endpoint_auth_methods_supported": ["client_secret_post"],
+        "code_challenge_methods_supported": ["S256"],
+    }
+
+
 @router.get("/.well-known/jwks.json")
 def jwks():
     settings = get_settings()
