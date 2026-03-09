@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     # Active key ID — embedded in JWT header and JWKS
     key_id: str = "key-1"
 
+    # Secondary key (optional) — kept in JWKS during rotation for old token verification
+    secondary_key_id: str | None = None
+    secondary_public_key_path: str | None = None
+
     # Admin API protection
     admin_api_key: str = "change-me-in-production"
 

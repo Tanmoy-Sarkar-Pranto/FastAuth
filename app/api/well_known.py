@@ -37,25 +37,29 @@ def openid_configuration():
     }
 
 
+def _build_jwk(public_key_path: str, kid: str) -> dict:
+    with open(public_key_path, "rb") as f:
+        public_key = load_pem_public_key(f.read())
+    assert isinstance(public_key, RSAPublicKey)
+    numbers = public_key.public_numbers()
+    return {
+        "kty": "RSA",
+        "use": "sig",
+        "alg": "RS256",
+        "kid": kid,
+        "n": _int_to_base64url(numbers.n),
+        "e": _int_to_base64url(numbers.e),
+    }
+
+
 @router.get("/.well-known/jwks.json")
 def jwks():
     settings = get_settings()
 
-    with open(settings.public_key_path, "rb") as f:
-        public_key = load_pem_public_key(f.read())
+    keys = [_build_jwk(settings.public_key_path, settings.key_id)]
 
-    assert isinstance(public_key, RSAPublicKey)
-    numbers = public_key.public_numbers()
+    # Include secondary key during rotation so old tokens remain verifiable
+    if settings.secondary_key_id and settings.secondary_public_key_path:
+        keys.append(_build_jwk(settings.secondary_public_key_path, settings.secondary_key_id))
 
-    return {
-        "keys": [
-            {
-                "kty": "RSA",
-                "use": "sig",
-                "alg": "RS256",
-                "kid": settings.key_id,
-                "n": _int_to_base64url(numbers.n),
-                "e": _int_to_base64url(numbers.e),
-            }
-        ]
-    }
+    return {"keys": keys}
