@@ -9,6 +9,7 @@ import UserDashboard from './pages/UserDashboard'
 import AdminLoginPage from './pages/AdminLoginPage'
 import ClientsPage from './pages/admin/ClientsPage'
 import ScopesPage from './pages/admin/ScopesPage'
+import UsersPage from './pages/admin/UsersPage'
 
 // Placeholder pages for now
 function PlaceholderPage({ title }) {
@@ -30,7 +31,7 @@ function ProtectedLayout() {
         <Route index element={<Navigate to="/admin/clients" replace />} />
         <Route path="clients" element={<ClientsPage />} />
         <Route path="scopes" element={<ScopesPage />} />
-        <Route path="users" element={<PlaceholderPage title="User Management" />} />
+        <Route path="users" element={<UsersPage />} />
         <Route path="tokens" element={<PlaceholderPage title="Token Inspector" />} />
       </Routes>
     </Layout>
