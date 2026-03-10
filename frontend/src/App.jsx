@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import UserDashboard from './pages/UserDashboard'
 import AdminLoginPage from './pages/AdminLoginPage'
+import ClientsPage from './pages/admin/ClientsPage'
 
 // Placeholder pages for now
 function PlaceholderPage({ title }) {
@@ -26,7 +27,7 @@ function ProtectedLayout() {
     <Layout>
       <Routes>
         <Route index element={<Navigate to="/admin/clients" replace />} />
-        <Route path="clients" element={<PlaceholderPage title="Client Management" />} />
+        <Route path="clients" element={<ClientsPage />} />
         <Route path="scopes" element={<PlaceholderPage title="Scope Management" />} />
         <Route path="users" element={<PlaceholderPage title="User Management" />} />
         <Route path="tokens" element={<PlaceholderPage title="Token Inspector" />} />

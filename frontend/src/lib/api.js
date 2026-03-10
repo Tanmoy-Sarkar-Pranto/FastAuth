@@ -58,6 +58,17 @@ export function adminGet(path, adminKey) {
   })
 }
 
+export function adminPatch(path, adminKey, body = null) {
+  return request(path, {
+    method: 'PATCH',
+    headers: {
+      'X-Admin-Key': adminKey,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+    },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  })
+}
+
 export function adminPost(path, body, adminKey) {
   return request(path, {
     method: 'POST',
