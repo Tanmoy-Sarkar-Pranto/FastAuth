@@ -69,6 +69,15 @@ export function adminPatch(path, adminKey, body = null) {
   })
 }
 
+export function adminDelete(path, adminKey) {
+  return fetch(`${BASE}${path}`, {
+    method: 'DELETE',
+    headers: { 'X-Admin-Key': adminKey },
+  }).then(res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  })
+}
+
 export function adminPost(path, body, adminKey) {
   return request(path, {
     method: 'POST',
