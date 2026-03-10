@@ -4,7 +4,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from typing import Optional
+from typing import Optional, List
 
 from app.api.dependencies import require_admin_key
 from app.core.security import hash_password
@@ -76,6 +76,25 @@ def create_client(payload: ClientCreateRequest, db: Session = Depends(get_db)):
 @router.get("", response_model=list[ClientListItem])
 def list_clients(db: Session = Depends(get_db)):
     return db.query(Client).order_by(Client.created_at.desc()).all()
+
+
+class ClientUpdateRequest(BaseModel):
+    allowed_scopes: Optional[str] = None
+    redirect_uris: Optional[str] = None
+
+
+@router.patch("/{client_id}", response_model=ClientListItem)
+def update_client(client_id: str, payload: ClientUpdateRequest, db: Session = Depends(get_db)):
+    client = db.query(Client).filter(Client.client_id == client_id).first()
+    if not client:
+        raise HTTPException(status_code=404, detail={"error": "not_found", "error_description": f"Client '{client_id}' not found"})
+    if payload.allowed_scopes is not None:
+        client.allowed_scopes = payload.allowed_scopes
+    if payload.redirect_uris is not None:
+        client.redirect_uris = payload.redirect_uris
+    db.commit()
+    db.refresh(client)
+    return client
 
 
 @router.patch("/{client_id}/active", response_model=ClientListItem)
