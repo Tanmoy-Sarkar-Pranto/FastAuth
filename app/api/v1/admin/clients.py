@@ -76,3 +76,14 @@ def create_client(payload: ClientCreateRequest, db: Session = Depends(get_db)):
 @router.get("", response_model=list[ClientListItem])
 def list_clients(db: Session = Depends(get_db)):
     return db.query(Client).order_by(Client.created_at.desc()).all()
+
+
+@router.patch("/{client_id}/active", response_model=ClientListItem)
+def toggle_client_active(client_id: str, db: Session = Depends(get_db)):
+    client = db.query(Client).filter(Client.client_id == client_id).first()
+    if not client:
+        raise HTTPException(status_code=404, detail={"error": "not_found", "error_description": f"Client '{client_id}' not found"})
+    client.is_active = not client.is_active
+    db.commit()
+    db.refresh(client)
+    return client
