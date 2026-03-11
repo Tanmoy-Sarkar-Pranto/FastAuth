@@ -3,29 +3,35 @@ from app.core.redis import get_redis
 from app.core.config import get_settings
 
 
-def rate_limit(request: Request) -> None:
+def make_rate_limiter(settings_key: str = "rate_limit_requests", key_prefix: str = "rate_limit"):
     """
-    FastAPI dependency — enforces per-IP rate limiting using Redis.
-    Raises 429 if the IP exceeds the configured request threshold.
+    Factory that returns a FastAPI dependency enforcing per-IP rate limiting.
+    settings_key: attribute name on Settings that holds the request limit.
+    key_prefix:   Redis key prefix — use different prefixes to keep limits independent.
     """
-    settings = get_settings()
-    client_ip = request.client.host
-    key = f"rate_limit:{client_ip}"
+    def _limiter(request: Request) -> None:
+        settings = get_settings()
+        limit = getattr(settings, settings_key)
+        key = f"{key_prefix}:{request.client.host}"
 
-    r = get_redis()
-    count = r.incr(key)
+        r = get_redis()
+        count = r.incr(key)
 
-    if count == 1:
-        # First request in this window — set the expiry
-        r.expire(key, settings.rate_limit_window_seconds)
+        if count == 1:
+            r.expire(key, settings.rate_limit_window_seconds)
 
-    if count > settings.rate_limit_requests:
-        ttl = r.ttl(key)
-        raise HTTPException(
-            status_code=429,
-            detail={
-                "error": "rate_limit_exceeded",
-                "error_description": f"Too many requests. Try again in {ttl} seconds.",
-            },
-            headers={"Retry-After": str(ttl)},
-        )
+        if count > limit:
+            ttl = r.ttl(key)
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "error": "rate_limit_exceeded",
+                    "error_description": f"Too many requests. Try again in {ttl} seconds.",
+                },
+                headers={"Retry-After": str(ttl)},
+            )
+
+    return _limiter
+
+
+rate_limit = make_rate_limiter()

@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     # Rate limiting
     rate_limit_requests: int = 10
     rate_limit_window_seconds: int = 60
+    introspect_rate_limit_requests: int = 60
 
     # Account lockout
     max_login_attempts: int = 5
@@ -45,6 +46,11 @@ class Settings(BaseSettings):
 
     # Registration mode
     allow_public_registration: bool = True
+
+    # CORS — comma-separated list of allowed origins (e.g. "http://localhost:3000,https://app.example.com")
+    cors_origins: str = "http://localhost:3000"
+
+    trusted_proxy_ips: str = "*"
 
 
 @lru_cache
