@@ -67,17 +67,17 @@ def authorize(
     # Check account lockout
     if is_locked(username):
         ttl = lockout_ttl(username)
-        audit.account_locked(ip=ip, email=username)
+        audit.account_locked(ip=ip, email=username, db=db)
         return _error_redirect(redirect_uri, "access_denied", f"Account locked. Try again in {ttl}s.", state)
 
     user = authenticate_user(db, email=username, password=password)
     if not user:
         record_failure(username)
-        audit.login_failure(ip=ip, email=username, reason="invalid_credentials")
+        audit.login_failure(ip=ip, email=username, reason="invalid_credentials", db=db)
         return _error_redirect(redirect_uri, "access_denied", "Invalid user credentials", state)
 
     reset_failures(username)
-    audit.login_success(ip=ip, user_id=str(user.id))
+    audit.login_success(ip=ip, user_id=str(user.id), db=db)
 
     requested = scope.split() if scope else []
     allowed = client.allowed_scopes.split() if client.allowed_scopes else []

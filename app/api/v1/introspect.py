@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, Form, Request
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.core.jwt import decode_access_token
 from app.core.rate_limit import make_rate_limiter
 from app.core import audit
+from app.db.session import get_db
 
 router = APIRouter(tags=["auth"])
 
@@ -21,15 +23,15 @@ class IntrospectionResponse(BaseModel):
 
 
 @router.post("/introspect", response_model=IntrospectionResponse, dependencies=[Depends(_introspect_rate_limit)])
-def introspect(request: Request, token: str = Form(...)):
+def introspect(request: Request, token: str = Form(...), db: Session = Depends(get_db)):
     ip = request.client.host
     payload = decode_access_token(token)
 
     if payload is None:
-        audit.introspection_called(ip=ip, active=False)
+        audit.introspection_called(ip=ip, active=False, db=db)
         return IntrospectionResponse(active=False)
 
-    audit.introspection_called(ip=ip, active=True)
+    audit.introspection_called(ip=ip, active=True, db=db)
     return IntrospectionResponse(
         active=True,
         sub=payload.get("sub"),

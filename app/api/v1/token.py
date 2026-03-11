@@ -62,7 +62,7 @@ def token(
 
         if is_locked(username):
             ttl = lockout_ttl(username)
-            audit.account_locked(ip=ip, email=username)
+            audit.account_locked(ip=ip, email=username, db=db)
             raise HTTPException(
                 status_code=423,
                 detail={
@@ -74,14 +74,14 @@ def token(
         user = authenticate_user(db, email=username, password=password)
         if not user:
             record_failure(username)
-            audit.login_failure(ip=ip, email=username, reason="invalid_credentials")
+            audit.login_failure(ip=ip, email=username, reason="invalid_credentials", db=db)
             raise INVALID_GRANT
 
         reset_failures(username)
-        audit.login_success(ip=ip, user_id=str(user.id))
+        audit.login_success(ip=ip, user_id=str(user.id), db=db)
         access_token = create_access_token(subject=str(user.id))
         new_refresh_token = create_refresh_token(db, user_id=str(user.id))
-        audit.token_issued(ip=ip, grant_type="password", user_id=str(user.id))
+        audit.token_issued(ip=ip, grant_type="password", user_id=str(user.id), db=db)
 
         return TokenResponse(
             access_token=access_token,
@@ -96,12 +96,12 @@ def token(
         try:
             new_refresh_token, user_id = rotate_refresh_token(db, raw_token=refresh_token)
         except ValueError as e:
-            audit.refresh_token_invalid(ip=ip, reason=str(e))
+            audit.refresh_token_invalid(ip=ip, reason=str(e), db=db)
             raise INVALID_REFRESH_TOKEN
 
-        audit.refresh_token_rotated(ip=ip, user_id=user_id)
+        audit.refresh_token_rotated(ip=ip, user_id=user_id, db=db)
         access_token = create_access_token(subject=user_id)
-        audit.token_issued(ip=ip, grant_type="refresh_token", user_id=user_id)
+        audit.token_issued(ip=ip, grant_type="refresh_token", user_id=user_id, db=db)
 
         return TokenResponse(
             access_token=access_token,
@@ -115,7 +115,7 @@ def token(
 
         client = authenticate_client(db, client_id=client_id, client_secret=client_secret)
         if not client:
-            audit.client_auth_failure(ip=ip, client_id=client_id or "unknown")
+            audit.client_auth_failure(ip=ip, client_id=client_id or "unknown", db=db)
             raise INVALID_CLIENT
 
         requested = scope.split() if scope else []
@@ -129,7 +129,7 @@ def token(
             )
 
         access_token = create_access_token(subject=client.client_id, scopes=scopes)
-        audit.token_issued(ip=ip, grant_type="client_credentials", client_id=client.client_id)
+        audit.token_issued(ip=ip, grant_type="client_credentials", client_id=client.client_id, db=db)
 
         return TokenResponse(
             access_token=access_token,
@@ -160,7 +160,7 @@ def token(
         scopes = db_code.scopes.split() if db_code.scopes else []
         access_token = create_access_token(subject=str(db_code.user_id), scopes=scopes)
         new_refresh_token = create_refresh_token(db, user_id=str(db_code.user_id))
-        audit.token_issued(ip=ip, grant_type="authorization_code", user_id=str(db_code.user_id), client_id=client_id)
+        audit.token_issued(ip=ip, grant_type="authorization_code", user_id=str(db_code.user_id), client_id=client_id, db=db)
 
         return TokenResponse(
             access_token=access_token,

@@ -10,6 +10,7 @@ import app.models.refresh_token
 import app.models.client
 import app.models.scope
 import app.models.authorization_code
+import app.models.audit_log
 
 config = context.config
 
