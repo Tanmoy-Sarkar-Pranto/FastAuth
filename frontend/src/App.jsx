@@ -11,6 +11,7 @@ import ClientsPage from './pages/admin/ClientsPage'
 import ScopesPage from './pages/admin/ScopesPage'
 import UsersPage from './pages/admin/UsersPage'
 import TokenInspectorPage from './pages/admin/TokenInspectorPage'
+import MonitoringPage from './pages/admin/MonitoringPage'
 
 // Placeholder pages for now
 function PlaceholderPage({ title }) {
@@ -34,6 +35,7 @@ function ProtectedLayout() {
         <Route path="scopes" element={<ScopesPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="tokens" element={<TokenInspectorPage />} />
+        <Route path="monitoring" element={<MonitoringPage />} />
       </Routes>
     </Layout>
   )

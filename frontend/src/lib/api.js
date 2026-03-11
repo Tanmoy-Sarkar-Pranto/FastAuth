@@ -78,6 +78,19 @@ export function adminDelete(path, adminKey) {
   })
 }
 
+export function adminGetStats(adminKey) {
+  return adminGet('/admin/stats', adminKey)
+}
+
+export function adminGetAuditLogs(adminKey, { event, outcome, limit = 50, offset = 0 } = {}) {
+  const qs = new URLSearchParams()
+  if (event) qs.set('event', event)
+  if (outcome) qs.set('outcome', outcome)
+  qs.set('limit', limit)
+  qs.set('offset', offset)
+  return adminGet(`/admin/audit-logs?${qs}`, adminKey)
+}
+
 export function adminPost(path, body, adminKey) {
   return request(path, {
     method: 'POST',
