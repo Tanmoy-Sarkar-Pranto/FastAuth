@@ -88,6 +88,18 @@ def refresh_token_invalid(ip: str, reason: str, db=None) -> None:
     _log("refresh_token_invalid", ip=ip, outcome="failure", reason=reason, db=db)
 
 
+def refresh_token_reuse_detected(ip: str, family_id: str, db=None) -> None:
+    """Security event: a previously-used refresh token was presented again."""
+    _log(
+        "refresh_token_reuse_detected",
+        ip=ip,
+        outcome="failure",
+        reason="token_reuse",
+        db=db,
+        family_id=family_id,  # stored in extra JSONB column in audit_logs
+    )
+
+
 # Introspection events
 
 def introspection_called(ip: str, active: bool, db=None) -> None:

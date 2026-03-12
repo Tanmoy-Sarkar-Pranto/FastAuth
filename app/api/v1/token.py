@@ -94,9 +94,18 @@ def token(
             raise INVALID_REFRESH_TOKEN
 
         try:
-            new_refresh_token, user_id = rotate_refresh_token(db, raw_token=refresh_token)
+            new_refresh_token, user_id = rotate_refresh_token(db, raw_token=refresh_token, ip=ip)
         except ValueError as e:
-            audit.refresh_token_invalid(ip=ip, reason=str(e), db=db)
+            reason = str(e)
+            if reason == "token_reuse":
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "invalid_grant",
+                        "error_description": "Refresh token reuse detected. All sessions revoked.",
+                    },
+                )
+            audit.refresh_token_invalid(ip=ip, reason=reason, db=db)
             raise INVALID_REFRESH_TOKEN
 
         audit.refresh_token_rotated(ip=ip, user_id=user_id, db=db)
