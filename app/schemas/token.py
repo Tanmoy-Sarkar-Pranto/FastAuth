@@ -6,3 +6,4 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int  # seconds
     refresh_token: str | None = None
+    id_token: str | None = None

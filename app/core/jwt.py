@@ -26,6 +26,41 @@ def create_access_token(subject: str, scopes: list[str] | None = None) -> str:
     return jwt.encode(payload, private_key, algorithm="RS256", headers={"kid": settings.key_id})
 
 
+def create_id_token(
+    subject: str,
+    client_id: str,
+    email: str,
+    name: str | None = None,
+) -> str:
+    """
+    Issue an OIDC ID token (RS256) for the given user.
+
+    - subject:   user UUID as string
+    - client_id: the OAuth2 client that requested the token (becomes `aud` claim)
+    - email:     user's email address
+    - name:      user's display name — omitted from claims if None
+    """
+    settings = get_settings()
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(minutes=settings.access_token_expire_minutes)
+
+    payload: dict = {
+        "iss": settings.issuer_url,
+        "sub": str(subject),
+        "aud": client_id,
+        "iat": now,
+        "exp": expire,
+        "email": email,
+    }
+    if name is not None:
+        payload["name"] = name
+
+    with open(settings.private_key_path, "rb") as f:
+        private_key = f.read()
+
+    return jwt.encode(payload, private_key, algorithm="RS256", headers={"kid": settings.key_id})
+
+
 def decode_access_token(token: str) -> dict | None:
     """
     Decode and verify a JWT. Returns the payload dict, or None if invalid/expired.

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy.orm import Session
 import uuid
 from datetime import datetime
@@ -19,11 +19,13 @@ router = APIRouter(
 class AdminUserCreateRequest(BaseModel):
     email: EmailStr
     password: str
+    name: str | None = Field(default=None, max_length=255)
 
 
 class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
+    name: str | None = None
     is_active: bool
     created_at: datetime
 
@@ -44,7 +46,7 @@ def admin_create_user(payload: AdminUserCreateRequest, db: Session = Depends(get
             detail={"error": "invalid_request", "error_description": "Password must be at least 8 characters"},
         )
     try:
-        user = create_user(db, email=payload.email, password=payload.password)
+        user = create_user(db, email=payload.email, password=payload.password, name=payload.name)
     except ValueError as e:
         raise HTTPException(
             status_code=409,

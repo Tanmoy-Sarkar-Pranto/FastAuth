@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.core.config import Settings, get_settings
-from app.core.jwt import create_access_token
+from app.core.jwt import create_access_token, create_id_token
+from app.models.user import User
 from app.db.session import get_db
 from app.schemas.token import TokenResponse
 from app.services.user import authenticate_user
@@ -169,12 +170,26 @@ def token(
         scopes = db_code.scopes.split() if db_code.scopes else []
         access_token = create_access_token(subject=str(db_code.user_id), scopes=scopes)
         new_refresh_token = create_refresh_token(db, user_id=str(db_code.user_id), client_id=client_id)
+
+        # Issue ID token only when openid scope was granted
+        id_token = None
+        if "openid" in scopes:
+            user = db.query(User).filter(User.id == db_code.user_id).first()
+            if user:
+                id_token = create_id_token(
+                    subject=str(user.id),
+                    client_id=client_id,
+                    email=user.email,
+                    name=user.name,
+                )
+
         audit.token_issued(ip=ip, grant_type="authorization_code", user_id=str(db_code.user_id), client_id=client_id, db=db)
 
         return TokenResponse(
             access_token=access_token,
             expires_in=settings.access_token_expire_minutes * 60,
             refresh_token=new_refresh_token,
+            id_token=id_token,
         )
 
     else:

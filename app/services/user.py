@@ -8,7 +8,7 @@ def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
 
 
-def create_user(db: Session, email: str, password: str) -> User:
+def create_user(db: Session, email: str, password: str, name: str | None = None) -> User:
     """Create a new user. Raises ValueError if email already exists."""
     existing = get_user_by_email(db, email)
     if existing:
@@ -17,6 +17,7 @@ def create_user(db: Session, email: str, password: str) -> User:
     user = User(
         email=email.lower().strip(),
         hashed_password=hash_password(password),
+        name=name,
     )
     db.add(user)
     db.commit()
