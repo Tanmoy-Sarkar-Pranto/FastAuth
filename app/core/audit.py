@@ -100,6 +100,32 @@ def refresh_token_reuse_detected(ip: str, family_id: str, db=None) -> None:
     )
 
 
+def refresh_token_revoked(
+    ip: str,
+    user_id: Optional[str] = None,
+    client_id: Optional[str] = None,
+    db=None,
+) -> None:
+    """Called when a refresh token is successfully revoked via /revoke."""
+    _log("refresh_token_revoked", ip=ip, user_id=user_id, client_id=client_id, db=db)
+
+
+def refresh_token_revoke_denied(
+    ip: str,
+    client_id: Optional[str] = None,
+    db=None,
+) -> None:
+    """Called when a valid client attempts to revoke a token it does not own."""
+    _log(
+        "refresh_token_revoke_denied",
+        ip=ip,
+        client_id=client_id,
+        outcome="failure",
+        reason="ownership_mismatch",
+        db=db,
+    )
+
+
 # Introspection events
 
 def introspection_called(ip: str, active: bool, db=None) -> None:

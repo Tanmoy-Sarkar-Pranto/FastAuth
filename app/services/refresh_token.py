@@ -24,14 +24,16 @@ def create_refresh_token(
     db: Session,
     user_id: str,
     family_id: uuid.UUID | None = None,
+    client_id: str | None = None,
 ) -> str:
     """
     Create a new refresh token and persist its hashed version.
 
-    - family_id=None (default): generates a new UUID → this token is a family root.
+    - family_id=None: generates a new UUID → family root token.
     - family_id provided: inherits the given family → rotated child token.
+    - client_id=None: password-grant token (no client association).
+    - client_id provided: stored on the token for ownership verification at /revoke.
 
-    Existing call sites in token.py pass no family_id → they become root tokens automatically.
     Returns the raw (unhashed) token string.
     """
     settings = get_settings()
@@ -42,6 +44,7 @@ def create_refresh_token(
         token_hash=_hash_token(raw_token),
         user_id=user_id,
         family_id=family_id if family_id is not None else uuid.uuid4(),
+        client_id=client_id,
         expires_at=expires_at,
     )
     db.add(db_token)
@@ -54,15 +57,12 @@ def rotate_refresh_token(db: Session, raw_token: str, ip: str = "unknown") -> tu
     """
     Validate the incoming refresh token, revoke it, and issue a new one.
 
-    - ip: caller's IP address, used for audit logging (passed from the token endpoint).
+    - ip: caller's IP address for audit logging.
     Returns (new_raw_token, user_id).
     Raises ValueError with one of: "invalid_token", "token_reuse",
     "token_revoked", "token_expired".
-
-    Reuse detection: if is_used=True, the token was already rotated — someone
-    is replaying an old token. The entire family is revoked immediately.
     """
-    from app.core import audit  # local import is a safe precautionary convention
+    from app.core import audit
 
     token_hash = _hash_token(raw_token)
     db_token = db.query(RefreshToken).filter(RefreshToken.token_hash == token_hash).first()
@@ -71,7 +71,6 @@ def rotate_refresh_token(db: Session, raw_token: str, ip: str = "unknown") -> tu
         raise ValueError("invalid_token")
 
     if db_token.is_used:
-        # Reuse detected — revoke the entire token family
         family_id = db_token.family_id
         db.query(RefreshToken).filter(
             RefreshToken.family_id == family_id
@@ -86,13 +85,14 @@ def rotate_refresh_token(db: Session, raw_token: str, ip: str = "unknown") -> tu
     if db_token.expires_at < datetime.now(timezone.utc):
         raise ValueError("token_expired")
 
-    # Mark old token as used and issue a new child token in the same family
+    # Inherit family and client from parent token
     family_id = db_token.family_id
+    client_id = db_token.client_id
     user_id = str(db_token.user_id)
 
     db_token.is_used = True
     db.commit()
 
-    new_raw_token = create_refresh_token(db, user_id, family_id=family_id)
+    new_raw_token = create_refresh_token(db, user_id, family_id=family_id, client_id=client_id)
 
     return new_raw_token, user_id

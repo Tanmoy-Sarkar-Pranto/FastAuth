@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import get_settings
-from app.api.v1 import health, token, introspect, users, authorize
+from app.api.v1 import health, token, introspect, users, authorize, revoke
 from app.api.v1.admin import clients as admin_clients
 from app.api.v1.admin import users as admin_users
 from app.api.v1.admin import scopes as admin_scopes
@@ -84,6 +84,7 @@ app.add_middleware(
 
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(token.router, prefix="/api/v1")
+app.include_router(revoke.router, prefix="/api/v1")
 app.include_router(introspect.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(authorize.router, prefix="/api/v1")

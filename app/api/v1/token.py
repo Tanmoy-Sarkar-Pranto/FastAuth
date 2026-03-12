@@ -168,7 +168,7 @@ def token(
 
         scopes = db_code.scopes.split() if db_code.scopes else []
         access_token = create_access_token(subject=str(db_code.user_id), scopes=scopes)
-        new_refresh_token = create_refresh_token(db, user_id=str(db_code.user_id))
+        new_refresh_token = create_refresh_token(db, user_id=str(db_code.user_id), client_id=client_id)
         audit.token_issued(ip=ip, grant_type="authorization_code", user_id=str(db_code.user_id), client_id=client_id, db=db)
 
         return TokenResponse(
