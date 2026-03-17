@@ -69,6 +69,19 @@ export default function LoginPage() {
         scope: searchParams.get('scope') ?? '',
         state: searchParams.get('state') ?? '',
       })
+
+      // Pre-fill credentials when arriving from registration
+      if (searchParams.get('registered') === '1') {
+        const stored = sessionStorage.getItem('fa_autofill')
+        if (stored) {
+          try {
+            const { email: e, password: p } = JSON.parse(stored)
+            setEmail(e)
+            setPassword(p)
+          } catch { /* ignore malformed data */ }
+          sessionStorage.removeItem('fa_autofill')
+        }
+      }
     }
   }, [searchParams])
 

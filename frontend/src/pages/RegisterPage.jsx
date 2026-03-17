@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { registerUser } from '../lib/api'
 
 function Spinner() {
@@ -13,6 +13,9 @@ function Spinner() {
 
 export default function RegisterPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const returnTo = searchParams.get('return_to')
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -24,7 +27,17 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       await registerUser(email, password)
-      navigate('/login?registered=1')
+      // Store credentials so the consent page can pre-fill them.
+      // Same origin → sessionStorage is safe. Cleared immediately after reading.
+      sessionStorage.setItem('fa_autofill', JSON.stringify({ email, password }))
+      // Pass any PKCE params through to the login page so the OAuth2 flow
+      // can complete after registration.
+      const queryStr = searchParams.toString()
+      if (queryStr) {
+        navigate(`/login?${queryStr}&registered=1`)
+      } else {
+        navigate('/login?registered=1')
+      }
     } catch (err) {
       setError(err.message)
     } finally {
